@@ -70,6 +70,11 @@ bot.command('joke', (ctx) => {
 
 
 
+
+
+
+
+
 // LISTENERS (text, stickers, etc)
 
 // listen for specific text
@@ -127,6 +132,57 @@ bot.action('back_to_menu', async (ctx) => {
 
 
 
+// ==================================
+// TELEGRAM STARS PAYMENT (BAREBONES)
+// ==================================
+
+// 1. Send the invoice with a command
+bot.command('donate', (ctx) => {
+    return ctx.replyWithInvoice({
+        title: "support this poor fella",
+        description: "pare mou ena kafedaki re magga",
+        payload: "internal_payload_id_001", // internal tracking ID
+        provider_token: "",
+        currency: "XTR",
+        prices: [
+            { label: "kafedaki", amount: 1} // 1 star
+        ]
+    })
+})
+
+//2. Pre-Checkout (MANDATORY)
+// Telegram asks: "Is this item still available?" 
+// You must answer within 10 seconds.
+bot.on('pre_checkout_query', (ctx) => {
+    // Logic where available stock can be checked can be implemented here
+    // For now, lets say TRUE (yes)
+    return ctx.answerPreCheckoutQuery(true)
+})
+
+// 3. Successful Payment
+bot.on('successful_payment', async (ctx) => {
+    const user = ctx.from.first_name
+    const amount = ctx.message.successful_payment.total_amount
+
+    console.log(`Payment received from ${user}: ${amount} stars!`)
+
+    await ctx.reply(`na sai kala re ${user} alani! Esteiles ${amount} asteria!🌟🌟🌟`)
+})
+
+// ======================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // 6. launch the bot
@@ -144,7 +200,7 @@ async function startBot() {
         
         console.log("4. Bot is live and listening for messages! ✅");
     } catch (error) {
-        console.error("❌ ERROR: Failed to start the bot:");
+        console.error("ERROR: Failed to start the bot:");
         console.error(error);
     }
 }
