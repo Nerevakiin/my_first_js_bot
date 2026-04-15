@@ -28,7 +28,8 @@ const mainKeyboard = Markup.inlineKeyboard([
         Markup.button.callback('📝 Ftiakse ena task', 'create_task'),
         Markup.button.callback('📂 Des ta tasks sou', 'view_tasks')
     ],
-    [Markup.button.callback('⚙️ Rithmiseis', 'settings')]
+    [Markup.button.callback('⚙️ Rithmiseis', 'settings')],
+    [Markup.button.callback('🌟 Agorase to Premium', 'buy_stars')]
 ])
 
 
@@ -116,6 +117,27 @@ bot.action('view_tasks', async (ctx) => {
         ])
     );
 });
+
+
+// ============ THE BUY PREMIUM OPTION BUTTON ===========
+bot.action('buy_stars', (ctx) => {
+    return ctx.replyWithInvoice({
+        title: "support this poor fella",
+        description: "pare mou ena kafedaki re magga",
+        payload: "internal_payload_id_001", // internal tracking ID
+        provider_token: "", // When using Stars, you leave this empty. If you were using credit cards via Stripe, you would put a token from BotFather here.
+        currency: "XTR",
+        prices: [
+            { label: "kafedaki", amount: 1} // 1 star
+        ]
+    })
+})
+
+
+
+
+
+
 
 
 // 3. THE "BACK" LOGIC
