@@ -142,7 +142,7 @@ bot.command('donate', (ctx) => {
         title: "support this poor fella",
         description: "pare mou ena kafedaki re magga",
         payload: "internal_payload_id_001", // internal tracking ID
-        provider_token: "",
+        provider_token: "", // When using Stars, you leave this empty. If you were using credit cards via Stripe, you would put a token from BotFather here.
         currency: "XTR",
         prices: [
             { label: "kafedaki", amount: 1} // 1 star
