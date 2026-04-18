@@ -151,6 +151,70 @@ bot.action('view_tasks', async (ctx) => {
 });
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+// 3. THE "BACK" LOGIC
+bot.action('back_to_menu', async (ctx) => {
+    await ctx.answerCbQuery()
+    // Since mainMenu uses ctx.reply (new message), 
+    // we manually edit this one back to the start state.
+    await ctx.editMessageText('Ti tha itheles na kaneis?', mainKeyboard)
+})
+
+
+
+
+
+
+
+// ==================================
+// TELEGRAM STARS PAYMENT (BAREBONES)
+// ==================================
+
+// 1. Send the invoice with a command
+bot.command('donate', (ctx) => {
+    return ctx.replyWithInvoice({
+        title: "support this poor fella",
+        description: "pare mou ena kafedaki re magga",
+        payload: "internal_payload_id_001", // internal tracking ID
+        provider_token: "", // When using Stars, you leave this empty. If you were using credit cards via Stripe, you would put a token from BotFather here.
+        currency: "XTR",
+        prices: [
+            { label: "kafedaki", amount: 1 } // 1 star
+        ]
+    })
+})
+
+//2. Pre-Checkout (MANDATORY)
+// Telegram asks: "Is this item still available?" 
+// You must answer within 10 seconds.
+bot.on('pre_checkout_query', (ctx) => {
+    // Logic where available stock can be checked can be implemented here
+    // For now, lets say TRUE (yes)
+    return ctx.answerPreCheckoutQuery(true)
+})
+
+// 3. Successful Payment
+bot.on('successful_payment', async (ctx) => {
+    const user = ctx.from.first_name
+    const amount = ctx.message.successful_payment.total_amount
+
+    console.log(`Payment received from ${user}: ${amount} stars!`)
+
+    await ctx.reply(`na sai kala re ${user} alani! Esteiles ${amount} asteria!🌟🌟🌟`)
+})
+
+
 // ============ THE BUY PREMIUM OPTION BUTTON ===========
 bot.action('buy_stars', (ctx) => {
     return ctx.replyWithInvoice({
@@ -166,6 +230,16 @@ bot.action('buy_stars', (ctx) => {
 })
 
 
+
+
+
+// ======================================================================================
+
+// ======================================================================================
+
+
+
+
 // ==== VIP AND SUBSCRIPTION LOGIC BUTTON ====
 
 bot.action('vip_area', async (ctx) => {
@@ -176,7 +250,7 @@ bot.action('vip_area', async (ctx) => {
         return ctx.editMessageText(
             '🔒 Den exeis prosvasi! Prepei na dwseis fragga giafto',
             Markup.inlineKeyboard([
-                [Markup.button.callback('🌟 Buy VIP for 50 Stars/Month', 'buy_sub')],
+                [Markup.button.callback('🌟 Buy VIP for 1 Star/Month', 'buy_sub')],
                 [Markup.button.callback('⬅️ Pisw sto menu', 'back_to_menu')]
             ])
         )
@@ -218,7 +292,7 @@ bot.action('buy_sub', async (ctx) => {
         // THIS IS HOW SUBSCRIPTIONS ARE HANDLED
         // 2592000 seconds = exactly 30 days
         // Telegram automatically charges every 30 days
-        subscription_period: 2592000 
+        // subscription_period: 2592000 
     })
 })
 
@@ -297,67 +371,7 @@ async function checkVipStatus(ctx) {
 }
 
 
-
-
-
-
-
-
-
-
-
-// 3. THE "BACK" LOGIC
-bot.action('back_to_menu', async (ctx) => {
-    await ctx.answerCbQuery()
-    // Since mainMenu uses ctx.reply (new message), 
-    // we manually edit this one back to the start state.
-    await ctx.editMessageText('Ti tha itheles na kaneis?', mainKeyboard)
-})
-
-
-
-
-
-
-
-// ==================================
-// TELEGRAM STARS PAYMENT (BAREBONES)
-// ==================================
-
-// 1. Send the invoice with a command
-bot.command('donate', (ctx) => {
-    return ctx.replyWithInvoice({
-        title: "support this poor fella",
-        description: "pare mou ena kafedaki re magga",
-        payload: "internal_payload_id_001", // internal tracking ID
-        provider_token: "", // When using Stars, you leave this empty. If you were using credit cards via Stripe, you would put a token from BotFather here.
-        currency: "XTR",
-        prices: [
-            { label: "kafedaki", amount: 1 } // 1 star
-        ]
-    })
-})
-
-//2. Pre-Checkout (MANDATORY)
-// Telegram asks: "Is this item still available?" 
-// You must answer within 10 seconds.
-bot.on('pre_checkout_query', (ctx) => {
-    // Logic where available stock can be checked can be implemented here
-    // For now, lets say TRUE (yes)
-    return ctx.answerPreCheckoutQuery(true)
-})
-
-// 3. Successful Payment
-bot.on('successful_payment', async (ctx) => {
-    const user = ctx.from.first_name
-    const amount = ctx.message.successful_payment.total_amount
-
-    console.log(`Payment received from ${user}: ${amount} stars!`)
-
-    await ctx.reply(`na sai kala re ${user} alani! Esteiles ${amount} asteria!🌟🌟🌟`)
-})
-
-// ======================================================================================
+// ==================================================================================
 
 
 
