@@ -139,7 +139,8 @@ bot.action('buy_stars', (ctx) => {
 })
 
 
-// ==== VIP AND SUBSCRIPTION LOGIC BUTTON
+// ==== VIP AND SUBSCRIPTION LOGIC BUTTON ====
+
 bot.action('vip_area', async (ctx) => {
     await ctx.answerCbQuery()
 
@@ -163,6 +164,54 @@ bot.action('vip_area', async (ctx) => {
     )
 })
 
+
+// ==== THE SUBSCRIPTION INVOICE ====
+
+bot.action('buy_sub', async (ctx) => {
+    await ctx.answerCbQuery()
+
+    return ctx.replyWithInvoice({
+        title: "VIP Monthly Subscription",
+        description: "Kseklidwse extra features kai to Secret VIP Area",
+        payload: "vip_subscription_payload",
+        provider_token: "",
+        currency: "XTR",
+        prices: [{label: "1 Mhnas VIP", amount: 1}], // 1 asteri
+
+        // THIS IS HOW SUBSCRIPTIONS ARE HANDLED
+        // 2592000 seconds = exactly 30 days
+        // Telegram automatically charges every 30 days
+        subscription_period: 2592000 
+    })
+})
+
+
+// ==== HANDLING THE PRE-CHECKOUT 
+
+bot.on('pre_checkout_query', (ctx) => {
+    // We confirm we are ready
+    return ctx.answerPreCheckoutQuery
+})
+
+
+// ==== GIVING THEM THE KEY ====
+
+bot.on('successful_payment', async (ctx) => {
+    const paymentInfo = ctx.message.successful_payment
+
+    // check if they paid for the VIP subscription using our payload
+    if (paymentInfo.invoice_payload === 'vip_subscription_payload') {
+
+        // 1. Give them the key
+        ctx.session.isVIP = true 
+
+        // 2. Celebrate
+        await ctx.reply(
+            `Na sai kala morti mou, eisai twra VIP melos! Plhrwses ${paymentInfo.total_amount} asteria`,
+            mainKeyboard
+        )
+    }
+})
 
 
 
