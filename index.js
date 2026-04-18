@@ -8,14 +8,39 @@ const bot = new Telegraf(process.env.BOT_TOKEN)
 
 
 // MIDDLEWARE MUST BE ON TOP
+
+// 1. Load the session from the file first!
+bot.use(localSession.middleware())
+
+// 2. Integrated Initialization & Logger MIDDLEWARE
 bot.use(async (ctx, next) => {
     const start = Date.now()
 
-    // call the next middleware/command
+    // -- PART 1: INITIALIZATION
+    // Ensure session exists
+    ctx.session = ctx.session || {} 
+
+    // Set defaults if they dont exist
+    if (ctx.session.isVIP === undefined) {
+        ctx.session.isVIP = false
+    }
+    if (ctx.session.tasks) {
+        ctx.session.tasks = []
+    }
+
+
+    // --- PART 2: EXECUTION
+    // this tells telegraf to run the commands/actions below
     await next()
 
-    const ms = Date.now() - start
-    console.log(`response time: ${ms}ms from User: ${ctx.from.first_name}`)
+    // --- PART 3: LOGGING
+    const ms = Date.now() - start 
+
+    // use optional chaingin ? because some telegram updates
+    // like service messages might not have a 'from' object
+    const name = ctx.from?.first_name || 'System'
+    console.log(`Response time: ${ms}ms | User: ${name} | VIP: ${ctx.session.isVIP}`)
+
 })
 
 
@@ -162,6 +187,16 @@ bot.action('vip_area', async (ctx) => {
             [Markup.button.callback('⬅️ Pisw sto menu', 'back_to_menu')]
         ])
     )
+
+    // Use the helper function to decice if they are STILL a member and handle subscription cancellation logic
+    const isStillVIP = await checkVipStatus(ctx)
+
+    if (!isStillVIP) {
+        return ctx.editMessageText("🔒 Subscription expired!")
+    }
+
+
+
 })
 
 
@@ -236,6 +271,28 @@ bot.on('my_chat_member', async (ctx) => {
         }
     }
 })
+
+
+// ==== A helper function to verify VIP status "live"
+
+async function checkVipStatus(ctx) {
+    // if we already know they are NOT VIP in session, save the API call
+    if (!ctx.session.isVIP) return false 
+
+    try {
+        // Ask telegram: "Is this user still a member of the paid group/status?"
+        const member = await ctx.getChatMember(ctx.from.id)
+
+        // logic depends on your specific setup, but usually:
+        if (member.status === 'left' || member.status === 'kicked') {
+            ctx.session.isVIP = false 
+            return false
+        }
+        return true 
+    } catch (e) {
+        return false
+    }
+}
 
 
 
