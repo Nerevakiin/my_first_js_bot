@@ -214,6 +214,32 @@ bot.on('successful_payment', async (ctx) => {
 })
 
 
+// ==== LISTEN FOR SUBSCRIPTION CHANGES OR CANCELLATIONS ====
+
+// This triggers when a subscription is cancelled or expires
+bot.on('my_chat_member', async (ctx) => {
+    const oldStatus = ctx.myChatMember.old_chat_member.status 
+    const newStatus = ctx.myChatMember.new_chat_member.status 
+
+    // Logic: If they were a 'member' (VIP) and now they 'left' or 'restricted
+    // Note: In stars subscriptions, Telegram specifically updates the member status
+
+    if (newStatus === 'kicked' || newStatus === 'left') {
+        console.log(`User ${ctx.from.id} cancelled their subscription plan`)
+        ctx.session.isVIP = false
+
+        // Send them a 'we are sorry to see you go' message
+        try {
+            await ctx.telegram.sendMessage(ctx.from.id, "Your VIP subscription has ended. We hope to see you back soon")
+        } catch (e) {
+            console.log("could not send goodbye message (user might have blocked bot")
+        }
+    }
+})
+
+
+
+
 
 
 
@@ -273,15 +299,6 @@ bot.on('successful_payment', async (ctx) => {
 })
 
 // ======================================================================================
-
-
-
-
-
-
-
-
-
 
 
 
