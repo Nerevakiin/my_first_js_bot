@@ -29,7 +29,12 @@ const mainKeyboard = Markup.inlineKeyboard([
         Markup.button.callback('📂 Des ta tasks sou', 'view_tasks')
     ],
     [Markup.button.callback('⚙️ Rithmiseis', 'settings')],
-    [Markup.button.callback('🌟 Agorase to Premium', 'buy_stars')]
+    [Markup.button.callback('💎 Agorase to Premium', 'buy_stars')],
+    [
+        Markup.button.callback('💎 VIP Secret Area', 'vip_area'),
+        Markup.button.callback('🌟 Buy VIP Subscription', 'buy_sub')
+    ]
+
 ])
 
 
@@ -43,7 +48,7 @@ const mainKeyboard = Markup.inlineKeyboard([
 // THE START COMMAND
 bot.start((ctx) => {
     ctx.reply(`Welcome ${ctx.from.first_name}! I am your new node.js bot`, mainKeyboard)
-    
+
 })
 
 // 3. command /help
@@ -128,10 +133,37 @@ bot.action('buy_stars', (ctx) => {
         provider_token: "", // When using Stars, you leave this empty. If you were using credit cards via Stripe, you would put a token from BotFather here.
         currency: "XTR",
         prices: [
-            { label: "kafedaki", amount: 1} // 1 star
+            { label: "kafedaki", amount: 1 } // 1 star
         ]
     })
 })
+
+
+// ==== VIP AND SUBSCRIPTION LOGIC BUTTON
+bot.action('vip_area', async (ctx) => {
+    await ctx.answerCbQuery()
+
+    // THE GATEKEEPER: Check if the user is VIP
+    if (!ctx.session.isVIP) {
+        return ctx.editMessageText(
+            '🔒 Den exeis prosvasi! Prepei na dwseis fragga giafto',
+            Markup.inlineKeyboard([
+                [Markup.button.callback('🌟 Buy VIP for 50 Stars/Month', 'buy_sub')],
+                [Markup.button.callback('⬅️ Pisw sto menu', 'back_to_menu')]
+            ])
+        )
+    }
+
+    // IF THEY ARE VIP: LET THEM IN
+    return ctx.editMessageText(
+        '💎 Welcome to the VIP Area! Here is the secret content...',
+        Markup.inlineKeyboard([
+            [Markup.button.callback('⬅️ Pisw sto menu', 'back_to_menu')]
+        ])
+    )
+})
+
+
 
 
 
@@ -167,7 +199,7 @@ bot.command('donate', (ctx) => {
         provider_token: "", // When using Stars, you leave this empty. If you were using credit cards via Stripe, you would put a token from BotFather here.
         currency: "XTR",
         prices: [
-            { label: "kafedaki", amount: 1} // 1 star
+            { label: "kafedaki", amount: 1 } // 1 star
         ]
     })
 })
@@ -207,19 +239,25 @@ bot.on('successful_payment', async (ctx) => {
 
 
 
+
+
+
+
+
+
 // 6. launch the bot
 
 async function startBot() {
     try {
         console.log("1. Checking connection to Telegram...");
-        
+
         // This checks if your token is valid BEFORE starting the bot
         const botInfo = await bot.telegram.getMe();
         console.log(`2. Success! Connected as @${botInfo.username}`);
 
         console.log("3. Starting polling...");
         await bot.launch();
-        
+
         console.log("4. Bot is live and listening for messages! ✅");
     } catch (error) {
         console.error("ERROR: Failed to start the bot:");
