@@ -1,11 +1,13 @@
-import { Telegraf } from 'telegraf'
-import { Markup } from 'telegraf'
+import { Telegraf, Markup, session } from 'telegraf'
+import LocalSession from 'telegraf-session-local'
 import 'dotenv/config'
 
 // 1. initialize the bot
 const bot = new Telegraf(process.env.BOT_TOKEN)
 
 
+// 2. Configure Local Session 
+const localSession = new LocalSession({ database: 'sessions.json' })
 
 // MIDDLEWARE MUST BE ON TOP
 

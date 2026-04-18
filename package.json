@@ -21,6 +21,7 @@
   "homepage": "https://github.com/Nerevakiin/my_first_js_bot#readme",
   "dependencies": {
     "dotenv": "^17.4.1",
-    "telegraf": "^4.16.3"
+    "telegraf": "^4.16.3",
+    "telegraf-session-local": "^2.1.1"
   }
 }
