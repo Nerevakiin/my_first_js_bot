@@ -234,7 +234,7 @@ bot.action('buy_stars', (ctx) => {
 
 
 // ======================================================================================
-
+// ======== SUBSCRIPTION LOGIC ======
 // ======================================================================================
 
 
@@ -284,19 +284,41 @@ bot.action('buy_sub', async (ctx) => {
 
         await ctx.answerCbQuery()
 
-        await ctx.replyWithInvoice({
-            title: "VIP Monthly Subscription",
-            description: "Kseklidwse extra features kai to Secret VIP Area",
-            payload: "vip_subscription_payload",
-            provider_token: "",
-            currency: "XTR",
-            prices: [{ label: "1 Mhnas VIP", amount: 1 }], // 1 asteri
+        // await ctx.replyWithInvoice({
+        //     title: "VIP Monthly Subscription",
+        //     description: "Kseklidwse extra features kai to Secret VIP Area",
+        //     payload: "vip_subscription_payload",
+        //     provider_token: "",
+        //     currency: "XTR",
+        //     prices: [{ label: "1 Mhnas VIP", amount: 1 }], // 1 asteri
 
-            // THIS IS HOW SUBSCRIPTIONS ARE HANDLED
-            // 2592000 seconds = exactly 30 days
-            // Telegram automatically charges every 30 days
-            subscription_period: 2592000
+        //     // THIS IS HOW SUBSCRIPTIONS ARE HANDLED
+        //     // 2592000 seconds = exactly 30 days
+        //     // Telegram automatically charges every 30 days
+        //     subscription_period: 2592000
+        // })
+
+
+        // 1. Generate the payment link (replace the above logic with a more secure one)
+        const invoiceLink = await ctx.telegram.createInvoiceLink({
+            title: "VIP Monthly Subscription",
+            description: "Unlock the Secret VIP Area and premium features.",
+            payload: "vip_subscription_payload",
+            provider_token: "", // Keep empty for Stars
+            currency: "XTR",
+            prices: [{ label: "1 Month VIP", amount: 1 }],
+            subscription_period: 2592000 // Exactly 30 days
         })
+
+        
+        // 2. Send a regular message with a URL button
+        await ctx.reply(
+            "🌟 Click the button below to start your VIP Subscription:",
+            Markup.inlineKeyboard([
+                [Markup.button.url('💳 Pay 1 Stars / Month', invoiceLink)],
+                [Markup.button.callback('⬅️ Back to Menu', 'back_to_menu')]
+            ])
+        )
 
     } catch (err) {
         console.error("Invoice Error:", err);
@@ -319,6 +341,10 @@ bot.on('pre_checkout_query', (ctx) => {
 
 bot.on('successful_payment', async (ctx) => {
     const paymentInfo = ctx.message.successful_payment
+
+    // Check if this was a test payment
+    // (Note: In some environments/versions, this is verified by the payload)
+    console.log(`Payment received! Payload: ${paymentInfo.invoice_payload}`);
 
     // check if they paid for the VIP subscription using our payload
     if (paymentInfo.invoice_payload === 'vip_subscription_payload') {
