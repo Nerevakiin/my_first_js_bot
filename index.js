@@ -20,7 +20,7 @@ bot.use(async (ctx, next) => {
 
     // -- PART 1: INITIALIZATION
     // Ensure session exists
-    ctx.session = ctx.session || {} 
+    ctx.session = ctx.session || {}
 
     // Set defaults if they dont exist
     if (ctx.session.isVIP === undefined) {
@@ -36,7 +36,7 @@ bot.use(async (ctx, next) => {
     await next()
 
     // --- PART 3: LOGGING
-    const ms = Date.now() - start 
+    const ms = Date.now() - start
 
     // use optional chaingin ? because some telegram updates
     // like service messages might not have a 'from' object
@@ -279,21 +279,31 @@ bot.action('vip_area', async (ctx) => {
 // ==== THE SUBSCRIPTION INVOICE ====
 
 bot.action('buy_sub', async (ctx) => {
-    await ctx.answerCbQuery()
 
-    return ctx.replyWithInvoice({
-        title: "VIP Monthly Subscription",
-        description: "Kseklidwse extra features kai to Secret VIP Area",
-        payload: "vip_subscription_payload",
-        provider_token: "",
-        currency: "XTR",
-        prices: [{label: "1 Mhnas VIP", amount: 1}], // 1 asteri
+    try {
 
-        // THIS IS HOW SUBSCRIPTIONS ARE HANDLED
-        // 2592000 seconds = exactly 30 days
-        // Telegram automatically charges every 30 days
-        // subscription_period: 2592000 
-    })
+        await ctx.answerCbQuery()
+
+        await ctx.replyWithInvoice({
+            title: "VIP Monthly Subscription",
+            description: "Kseklidwse extra features kai to Secret VIP Area",
+            payload: "vip_subscription_payload",
+            provider_token: "",
+            currency: "XTR",
+            prices: [{ label: "1 Mhnas VIP", amount: 1 }], // 1 asteri
+
+            // THIS IS HOW SUBSCRIPTIONS ARE HANDLED
+            // 2592000 seconds = exactly 30 days
+            // Telegram automatically charges every 30 days
+            subscription_period: 2592000
+        })
+
+    } catch (err) {
+        console.error("Invoice Error:", err);
+        await ctx.reply("Sorry, I cannot create the invoice right now. Please try again later.");
+    }
+    
+    
 })
 
 
@@ -314,7 +324,7 @@ bot.on('successful_payment', async (ctx) => {
     if (paymentInfo.invoice_payload === 'vip_subscription_payload') {
 
         // 1. Give them the key
-        ctx.session.isVIP = true 
+        ctx.session.isVIP = true
 
         // 2. Celebrate
         await ctx.reply(
@@ -329,8 +339,8 @@ bot.on('successful_payment', async (ctx) => {
 
 // This triggers when a subscription is cancelled or expires
 bot.on('my_chat_member', async (ctx) => {
-    const oldStatus = ctx.myChatMember.old_chat_member.status 
-    const newStatus = ctx.myChatMember.new_chat_member.status 
+    const oldStatus = ctx.myChatMember.old_chat_member.status
+    const newStatus = ctx.myChatMember.new_chat_member.status
 
     // Logic: If they were a 'member' (VIP) and now they 'left' or 'restricted
     // Note: In stars subscriptions, Telegram specifically updates the member status
@@ -353,7 +363,7 @@ bot.on('my_chat_member', async (ctx) => {
 
 async function checkVipStatus(ctx) {
     // if we already know they are NOT VIP in session, save the API call
-    if (!ctx.session.isVIP) return false 
+    if (!ctx.session.isVIP) return false
 
     try {
         // Ask telegram: "Is this user still a member of the paid group/status?"
@@ -361,10 +371,10 @@ async function checkVipStatus(ctx) {
 
         // logic depends on your specific setup, but usually:
         if (member.status === 'left' || member.status === 'kicked') {
-            ctx.session.isVIP = false 
+            ctx.session.isVIP = false
             return false
         }
-        return true 
+        return true
     } catch (e) {
         return false
     }
